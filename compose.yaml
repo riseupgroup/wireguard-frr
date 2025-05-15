@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./wireguard:/etc/wireguard
+    restart: unless-stopped
+    network_mode: host
+    hostname: "testpi"
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    environment:
+      ROUTER_ID: "10.0.0.1"
+      NETWORKS: "192.168.0.0/24 172.20.0.0/24"
+      NEIGHBOR_RANGE: "10.0.0.0/24"
+      NEIGHBORS: "10.0.0.1 10.0.0.2"

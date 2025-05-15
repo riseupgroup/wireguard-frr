@@ -1,0 +1,11 @@
+[Interface]
+Address = <ip>/<range>
+PrivateKey = <private key>
+ListenPort = 4000
+Table = off
+
+[Peer]
+PublicKey = <public key>
+Endpoint = <host>:<port>
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25
