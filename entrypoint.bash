@@ -57,7 +57,7 @@ for path in ${CONFIGS[@]}; do
 interface $interface
     ip ospf dead-interval 240
     ip ospf hello-interval 5
-    ip ospf prority 200
+    ip ospf priority 200
 exit
 EOF
 done
@@ -88,7 +88,7 @@ done
 echo "!" >> $CONFIG
 
 for neighbor in ${NEIGHBORS[@]}; do
-    echo "access-list ac-ospf seq 5 permit $neighbor/32" >> $CONFIG
+    echo "access-list ac-ospf permit $neighbor/32" >> $CONFIG
 done
 
 cat >> $CONFIG << EOF
