@@ -31,7 +31,7 @@ cd wireguard-frr
 ### 🚀 Run the container
 
 ```bash
-docker compose up -d
+docker compose up -d # add `--build` after updating
 ```
 
 ## 📢 Contributing
