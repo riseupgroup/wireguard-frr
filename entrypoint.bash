@@ -43,6 +43,7 @@ for path in ${CONFIGS[@]}; do
     filename=${path##*/}
     interface=${filename%.*}
 
+    wg-quick down $interface
     wg-quick up $interface
     iptables -I FORWARD 1 -i $interface -j ACCEPT
     iptables -I FORWARD 1 -o $interface -j ACCEPT
