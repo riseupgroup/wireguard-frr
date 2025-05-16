@@ -5,7 +5,6 @@ services:
       - ./wireguard:/etc/wireguard
     restart: unless-stopped
     network_mode: host
-    hostname: "testpi"
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN

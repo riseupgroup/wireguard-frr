@@ -1,6 +1,6 @@
-# Wireguard FRR
+# WireGuard FRR
 
-Wireguard FRR is a docker container that runs a Wireguard VPN server and FRR (Free Range Routing) for dynamic routing using ospf.
+WireGuard FRR is a docker container that runs a WireGuard VPN server and FRR (Free Range Routing) for dynamic routing using ospf.
 
 ## 🛠️ Setup
 
