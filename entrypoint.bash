@@ -6,6 +6,11 @@ if [ -z "$ROUTER_ID" ]; then
     EXIT=1
 fi
 
+if [ -z "$ALLOW_ROUTING_INTO_NETWORK" ]; then
+    echo "ALLOW_ROUTING_INTO_NETWORK is not set (true or false)"
+    EXIT=1
+fi
+
 if [ -z "$NETWORKS" ]; then
     echo "NETWORKS is not set (e.g. \"192.168.0.0/24 172.20.0.0/24\")"
     EXIT=1
@@ -29,7 +34,31 @@ HOSTNAME=$(cat /etc/hostname)
 CONFIG="/etc/frr/frr.conf"
 CONFIGS=(/etc/wireguard/*)
 DEFAULT_ROUTE=$(ip route show default | grep -o -e "[^ ]\+ dev [^ ]\+")
-DEFAULT_DEVICE=$(echo $DEFAULT_ROUTE | awk "{print \$2}")
+DEFAULT_DEVICE=$(echo $DEFAULT_ROUTE | awk "{print \$3}")
+
+# Syntax: route_interface (-A|-D) <interface>
+# Pass `-A` to add or `-D` to delete the iptables rules
+function route_interface() {
+    iptables -t nat $1 POSTROUTING -o $2 -j MASQUERADE
+    iptables $1 FORWARD -i $2 -j ACCEPT
+    if [ "$ALLOW_ROUTING_INTO_NETWORK" = true ]; then
+        iptables $1 FORWARD -i $DEFAULT_DEVICE -o $2 -j ACCEPT
+    else
+        iptables $1 FORWARD -i $DEFAULT_DEVICE -o $2 -m state --state ESTABLISHED,RELATED -j ACCEPT
+    fi
+}
+
+function shut_down() {
+    for path in ${CONFIGS[@]}; do
+        filename=${path##*/}
+        interface=${filename%.*}
+        wg-quick down $interface
+        route_interface -D $interface
+    done
+    exit 0
+}
+
+trap shut_down SIGKILL SIGTERM SIGHUP SIGINT EXIT
 
 cat > $CONFIG << EOF
 hostname $HOSTNAME
@@ -39,19 +68,15 @@ service integrated-vtysh-config
 !
 EOF
 
+iptables -t nat -A POSTROUTING -o $DEFAULT_DEVICE -j MASQUERADE
+
 for path in ${CONFIGS[@]}; do
     filename=${path##*/}
     interface=${filename%.*}
 
     wg-quick down $interface
     wg-quick up $interface
-    iptables -I FORWARD 1 -i $interface -j ACCEPT
-    iptables -I FORWARD 1 -o $interface -j ACCEPT
-
-    iptables -t nat -I POSTROUTING 1 -s $NEIGHBOR_RANGE -o $DEFAULT_DEVICE -j MASQUERADE
-    for network in ${NETWORKS[@]}; do
-        iptables -t nat -I POSTROUTING 1 -s $network -o $DEFAULT_DEVICE -j MASQUERADE
-    done
+    route_interface -A $interface
 
     cat >> $CONFIG << EOF
 interface $interface
@@ -110,4 +135,5 @@ done
 
 /usr/lib/frr/frrinit.sh start
 PID=$(cat /run/frr/watchfrr.pid)
-tail -f /proc/$PID/fd/2
+tail -f /proc/$PID/fd/2 &
+wait $!

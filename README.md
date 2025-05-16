@@ -16,6 +16,7 @@ cd wireguard-frr
 
 1. Set the environment variables in the `compose.yaml`
     - `ROUTER_ID`: Your peers unique ID (e.g. the peer ip in the tunnel `"10.0.0.1"`)
+    - `ALLOW_ROUTING_INTO_NETWORK`: Set to `true` to allow routing from the default interface to all peers
     - `NETWORKS`: The networks your peer should announce for routing (e.g. something the node should announce `"192.168.0.0/24 172.20.0.0/24"`)
     - `NEIGHBOR_RANGE`: The network range for all OSPF neighbors (e.g. `"10.0.0.0/24"`)
     - `NEIGHBORS`: All OSPF neighbors to peer with (e.g. `"10.0.0.1 10.0.0.2"`)
